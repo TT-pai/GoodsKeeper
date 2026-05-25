@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, ShareAltOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Layout } from '@/components/common/Layout';
 import { AiFeedback } from '@/components/goods/AiFeedback';
+import { ShareCard } from '@/components/share/ShareCard';
 import { useGoods } from '@/hooks/useGoods';
 import { storageService } from '@/utils/storage';
 import { Goods, GoodsCategory, CATEGORY_LABELS, CATEGORY_ICONS } from '@/types/goods';
@@ -15,6 +16,7 @@ export function GoodsDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [goods, setGoods] = useState<Goods | null>(null);
+  const [showShareCard, setShowShareCard] = useState(false);
   const { updateGoods, deleteGoods, loadGoods } = useGoods();
 
   useEffect(() => {
@@ -68,7 +70,10 @@ export function GoodsDetail() {
   };
 
   const handleShare = () => {
-    navigate(`/share/${id}`);
+    setShowShareCard(true);
+    if (goods) {
+      updateGoods(goods.id, { shareCount: goods.shareCount + 1 });
+    }
   };
 
   if (!goods) {
@@ -208,6 +213,12 @@ export function GoodsDetail() {
           {goods.shareCount > 0 && ` · 已分享${goods.shareCount}次`}
         </Text>
       </Card>
+
+      <ShareCard
+        goods={goods}
+        visible={showShareCard}
+        onClose={() => setShowShareCard(false)}
+      />
     </Layout>
   );
 }
