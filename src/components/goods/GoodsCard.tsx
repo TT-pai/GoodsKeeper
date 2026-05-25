@@ -1,6 +1,6 @@
 // src/components/goods/GoodsCard.tsx
-import React from 'react';
-import { Card, Rate, Tag, Typography } from 'antd';
+import React, { useState } from 'react';
+import { Card, Rate, Tag, Typography, Skeleton } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { Goods, CATEGORY_LABELS, CATEGORY_ICONS } from '@/types/goods';
 
@@ -12,6 +12,8 @@ interface GoodsCardProps {
 }
 
 export function GoodsCard({ goods, onClick }: GoodsCardProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   return (
     <Card
       hoverable
@@ -19,11 +21,27 @@ export function GoodsCard({ goods, onClick }: GoodsCardProps) {
       onClick={() => onClick(goods.id)}
       cover={
         goods.image && (
-          <img
-            alt={goods.name}
-            src={goods.image}
-            style={{ height: '200px', objectFit: 'cover' }}
-          />
+          <div style={{ height: '200px', overflow: 'hidden', position: 'relative' }}>
+            {!imageLoaded && (
+              <Skeleton.Image
+                active
+                style={{ width: '100%', height: '200px', position: 'absolute', top: 0 }}
+              />
+            )}
+            <img
+              alt={goods.name}
+              src={goods.image}
+              style={{
+                height: '200px',
+                width: '100%',
+                objectFit: 'cover',
+                opacity: imageLoaded ? 1 : 0,
+                transition: 'opacity 0.3s'
+              }}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageLoaded(true)} // 即使加载失败也显示占位
+            />
+          </div>
         )
       }
       actions={[
