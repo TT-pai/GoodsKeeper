@@ -90,18 +90,18 @@ export function Profile() {
       <Card style={{ marginTop: '16px' }}>
         <Title level={4}>AI服务配置</Title>
         <Paragraph style={{ marginBottom: '16px' }}>
-          GoodsKeeper使用Claude AI服务，需要设置你的API Key
+          GoodsKeeper支持多种AI服务，推荐使用DeepSeek（免费额度大）
         </Paragraph>
         <Button
           icon={<KeyOutlined />}
           onClick={() => setShowApiKeyModal(true)}
         >
-          设置Claude API Key
+          设置AI API Key
         </Button>
       </Card>
 
       <Modal
-        title="设置Claude API Key"
+        title="设置AI API Key"
         open={showApiKeyModal}
         onCancel={() => setShowApiKeyModal(false)}
         footer={null}
@@ -111,7 +111,7 @@ export function Profile() {
             name="apiKey"
             rules={[{ required: true, message: '请输入API Key' }]}
           >
-            <Input.Password placeholder="Claude API Key" />
+            <Input.Password placeholder="AI API Key（支持DeepSeek/通义千问/Claude）" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block>
@@ -120,7 +120,10 @@ export function Profile() {
           </Form.Item>
         </Form>
         <Paragraph type="secondary" style={{ marginTop: '12px' }}>
-          获取API Key: https://console.anthropic.com/
+          推荐方案：DeepSeek（免费500万tokens）→ https://platform.deepseek.com
+        </Paragraph>
+        <Paragraph type="secondary" style={{ marginTop: '4px' }}>
+          其他选项：通义千问 → https://dashscope.aliyun.com
         </Paragraph>
       </Modal>
     </Layout>

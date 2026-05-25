@@ -2,53 +2,55 @@
 import { AiExtractResult, AiClassifyResult } from '@/types/ai';
 import { GoodsCategory, CATEGORY_LABELS } from '@/types/goods';
 
-// Claude API配置
-const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
-const CLAUDE_MODEL = 'claude-3-5-sonnet-20241022';
+// DeepSeek API配置（兼容OpenAI格式）
+const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const DEEPSEEK_MODEL = 'deepseek-chat';
 
 export class AiService {
   private apiKey: string | null = null;
 
   setApiKey(key: string) {
     this.apiKey = key;
-    localStorage.setItem('claude-api-key', key);
+    localStorage.setItem('ai-api-key', key);
   }
 
   getApiKey(): string | null {
     if (!this.apiKey) {
-      this.apiKey = localStorage.getItem('claude-api-key');
+      this.apiKey = localStorage.getItem('ai-api-key') || localStorage.getItem('claude-api-key');
     }
     return this.apiKey;
   }
 
-  private async callClaude(prompt: string): Promise<string> {
+  private async callDeepSeek(prompt: string): Promise<string> {
     const apiKey = this.getApiKey();
     if (!apiKey) {
-      throw new Error('Claude API Key未设置。请在个人中心设置你的API Key');
+      throw new Error('AI API Key未设置。请在个人中心设置你的API Key');
     }
 
-    const response = await fetch(CLAUDE_API_URL, {
+    const response = await fetch(DEEPSEEK_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
+        'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: CLAUDE_MODEL,
-        max_tokens: 1024,
+        model: DEEPSEEK_MODEL,
         messages: [
           { role: 'user', content: prompt }
-        ]
+        ],
+        temperature: 0.7,
+        max_tokens: 1024
       })
     });
 
     if (!response.ok) {
-      throw new Error(`Claude API错误: ${response.status}`);
+      const errorData = await response.json().catch(() => null);
+      const errorMsg = errorData?.error?.message || `DeepSeek API错误: ${response.status}`;
+      throw new Error(errorMsg);
     }
 
     const data = await response.json();
-    return data.content[0].text;
+    return data.choices[0].message.content;
   }
 
   async extractGoodsInfo(link: string): Promise<AiExtractResult> {
@@ -68,7 +70,7 @@ export class AiService {
 如果提取失败，返回: { "success": false, "error": "原因" }
 `;
 
-      const response = await this.callClaude(prompt);
+      const response = await this.callDeepSeek(prompt);
       const parsed = JSON.parse(response);
 
       return {
@@ -102,7 +104,7 @@ export class AiService {
 }
 `;
 
-      const response = await this.callClaude(prompt);
+      const response = await this.callDeepSeek(prompt);
       const parsed = JSON.parse(response);
 
       return {
