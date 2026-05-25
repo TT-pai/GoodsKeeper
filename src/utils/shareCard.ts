@@ -1,6 +1,6 @@
 // src/utils/shareCard.ts
 import html2canvas from 'html2canvas';
-import QRCode from 'qrcode.react';
+import { QRCodeSVG } from 'qrcode.react';
 import React from 'react';
 import { Goods } from '@/types/goods';
 
@@ -40,8 +40,8 @@ export class ShareCardService {
     if (goods.link) {
       const qrcodeContainer = cardElement.querySelector('#qrcode-placeholder');
       if (qrcodeContainer) {
-        // 使用React创建QRCode组件并渲染到容器中
-        const qrElement = React.createElement(QRCode, {
+        // 使用React创建QRCodeSVG组件并渲染到容器中
+        const qrElement = React.createElement(QRCodeSVG, {
           value: goods.link,
           size: 100,
           bgColor: '#fff',
