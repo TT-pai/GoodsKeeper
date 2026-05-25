@@ -78,23 +78,26 @@ export class AiService {
       const prompt = `
 从以下电商链接中提取商品信息: ${link}
 
-请提取并返回JSON格式:
-{
-  "name": "商品名称",
-  "brand": "品牌名称（可选）",
-  "price": "价格数字（可选）",
-  "image": "图片URL（可选）",
-  "platform": "平台名称（taobao/jd/pdd）"
-}
+请严格按照以下格式返回纯JSON（不要添加任何markdown标记）：
+{"name":"商品名称","brand":"品牌名称","price":99.9,"image":"图片URL","platform":"taobao"}
 
-如果提取失败，返回: { "success": false, "error": "原因" }
-
-注意：只返回纯JSON，不要添加markdown代码块标记。
+注意事项：
+1. 只返回纯JSON，不要添加```json或任何markdown标记
+2. name字段必须有值，其他字段可选（没有则留空字符串）
+3. price必须是数字类型（不要带引号）
+4. brand和image如果没有则返回空字符串""
+5. platform识别：taobao/jd/pdd/other
+6. 如果无法提取，返回：{"success":false,"error":"原因"}
 `;
 
       const response = await this.callDeepSeek(prompt);
+      console.log('DeepSeek原始返回:', response); // 调试日志
+
       const cleanedResponse = this.cleanJsonResponse(response);
+      console.log('清理后的JSON:', cleanedResponse); // 调试日志
+
       const parsed = JSON.parse(cleanedResponse);
+      console.log('解析后的数据:', parsed); // 调试日志
 
       return {
         success: true,
@@ -102,6 +105,7 @@ export class AiService {
         method: 'link'
       };
     } catch (error: any) {
+      console.error('AI提取错误:', error); // 错误日志
       return {
         success: false,
         error: error.message,
