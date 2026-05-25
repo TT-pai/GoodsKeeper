@@ -21,6 +21,26 @@ export class AiService {
     return this.apiKey;
   }
 
+  // 清理AI返回的JSON字符串（去除markdown格式标记）
+  private cleanJsonResponse(response: string): string {
+    // 去除markdown代码块标记
+    let cleaned = response.trim();
+
+    // 去除开头的```json或```
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.replace(/^```json\s*/, '');
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```\s*/, '');
+    }
+
+    // 去除结尾的```
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.replace(/\s*```$/, '');
+    }
+
+    return cleaned.trim();
+  }
+
   private async callDeepSeek(prompt: string): Promise<string> {
     const apiKey = this.getApiKey();
     if (!apiKey) {
@@ -68,10 +88,13 @@ export class AiService {
 }
 
 如果提取失败，返回: { "success": false, "error": "原因" }
+
+注意：只返回纯JSON，不要添加markdown代码块标记。
 `;
 
       const response = await this.callDeepSeek(prompt);
-      const parsed = JSON.parse(response);
+      const cleanedResponse = this.cleanJsonResponse(response);
+      const parsed = JSON.parse(cleanedResponse);
 
       return {
         success: true,
@@ -102,10 +125,13 @@ export class AiService {
   "tags": ["标签1", "标签2"],
   "confidence": 0.9
 }
+
+注意：只返回纯JSON，不要添加markdown代码块标记。
 `;
 
       const response = await this.callDeepSeek(prompt);
-      const parsed = JSON.parse(response);
+      const cleanedResponse = this.cleanJsonResponse(response);
+      const parsed = JSON.parse(cleanedResponse);
 
       return {
         success: true,
