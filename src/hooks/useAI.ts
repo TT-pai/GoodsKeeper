@@ -21,7 +21,7 @@ export function useAI() {
     }
   };
 
-  const classifyGoods = async (name: string, brand?: string): Promise<AiClassifyResult> {
+  const classifyGoods = async (name: string, brand?: string): Promise<AiClassifyResult> => {
     setLoading(true);
     setError(null);
     try {
