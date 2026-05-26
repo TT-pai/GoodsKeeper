@@ -2,7 +2,7 @@
 import { AiExtractResult, AiClassifyResult } from '@/types/ai';
 import { GoodsCategory, CATEGORY_LABELS } from '@/types/goods';
 
-// DeepSeek API配置（兼容OpenAI格式）
+// DeepSeek API configuration (OpenAI compatible)
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 const DEEPSEEK_MODEL = 'deepseek-chat';
 
@@ -21,19 +21,18 @@ export class AiService {
     return this.apiKey;
   }
 
-  // 清理AI返回的JSON字符串（去除markdown格式标记）
+  // Clean AI response - remove markdown code block markers
   private cleanJsonResponse(response: string): string {
-    // 去除markdown代码块标记
     let cleaned = response.trim();
 
-    // 去除开头的```json或```
+    // Remove opening ```json or ```
     if (cleaned.startsWith('```json')) {
       cleaned = cleaned.replace(/^```json\s*/, '');
     } else if (cleaned.startsWith('```')) {
       cleaned = cleaned.replace(/^```\s*/, '');
     }
 
-    // 去除结尾的```
+    // Remove closing ```
     if (cleaned.endsWith('```')) {
       cleaned = cleaned.replace(/\s*```$/, '');
     }
@@ -44,7 +43,7 @@ export class AiService {
   private async callDeepSeek(prompt: string): Promise<string> {
     const apiKey = this.getApiKey();
     if (!apiKey) {
-      throw new Error('AI API Key未设置。请在个人中心设置你的API Key');
+      throw new Error('AI API Key not set. Please set your API Key in Profile page.');
     }
 
     const response = await fetch(DEEPSEEK_API_URL, {
@@ -65,7 +64,7 @@ export class AiService {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
-      const errorMsg = errorData?.error?.message || `DeepSeek API错误: ${response.status}`;
+      const errorMsg = errorData?.error?.message || `DeepSeek API error: ${response.status}`;
       throw new Error(errorMsg);
     }
 
@@ -75,29 +74,26 @@ export class AiService {
 
   async extractGoodsInfo(link: string): Promise<AiExtractResult> {
     try {
-      const prompt = `
-从以下电商链接中提取商品信息: ${link}
+      const prompt = `Extract product information from this e-commerce link: ${link}
 
-请严格按照以下格式返回纯JSON(不要添加任何markdown标记):
-{"name":"商品名称","brand":"品牌名称","price":99.9,"image":"图片URL","platform":"taobao"}
+Return ONLY pure JSON without any markdown markers. Use this exact format:
+{"name":"Product Name","brand":"Brand Name","price":99.9,"image":"Image URL","platform":"taobao"}
 
-注意事项:
-1. 只返回纯JSON,不要添加任何markdown标记
-2. name字段必须有值,其他字段可选(没有则留空字符串)
-3. price必须是数字类型(不要带引号)
-4. brand和image如果没有则返回空字符串
-5. platform识别: taobao/jd/pdd/other
-6. 如果无法提取,返回 {"success":false,"error":"原因"}
-`;
+Requirements:
+1. name field is required
+2. price must be number type (no quotes)
+3. brand and image should be empty string "" if not available
+4. platform options: taobao/jd/pdd/other
+5. If extraction fails, return: {"success":false,"error":"reason"}`;
 
       const response = await this.callDeepSeek(prompt);
-      console.log('DeepSeek原始返回:', response); // 调试日志
+      console.log('DeepSeek raw response:', response);
 
       const cleanedResponse = this.cleanJsonResponse(response);
-      console.log('清理后的JSON:', cleanedResponse); // 调试日志
+      console.log('Cleaned JSON:', cleanedResponse);
 
       const parsed = JSON.parse(cleanedResponse);
-      console.log('解析后的数据:', parsed); // 调试日志
+      console.log('Parsed data:', parsed);
 
       return {
         success: true,
@@ -105,7 +101,7 @@ export class AiService {
         method: 'link'
       };
     } catch (error: any) {
-      console.error('AI提取错误:', error); // 错误日志
+      console.error('AI extraction error:', error);
       return {
         success: false,
         error: error.message,
@@ -117,17 +113,13 @@ export class AiService {
   async classifyGoods(name: string, brand?: string): Promise<AiClassifyResult> {
     try {
       const categories = Object.keys(CATEGORY_LABELS).join(', ');
-      const prompt = `
-将以下商品分类到其中一个类别: ${categories}
+      const prompt = `Classify this product into one of these categories: ${categories}
 
-商品: ${name}
-品牌: ${brand || 'unknown'}
+Product: ${name}
+Brand: ${brand || 'unknown'}
 
-请严格按照以下格式返回纯JSON(不要添加markdown标记):
-{"category":"类别名称","tags":["标签1","标签2"],"confidence":0.9}
-
-注意: 只返回纯JSON,不要添加markdown标记
-`;
+Return ONLY pure JSON without markdown. Use this exact format:
+{"category":"category_name","tags":["tag1","tag2"],"confidence":0.9}`;
 
       const response = await this.callDeepSeek(prompt);
       const cleanedResponse = this.cleanJsonResponse(response);
