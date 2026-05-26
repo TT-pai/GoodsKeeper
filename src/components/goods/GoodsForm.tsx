@@ -26,8 +26,13 @@ export function GoodsForm({ onSubmit, initialValues }: GoodsFormProps) {
 
     setAiLoading(true);
     try {
+      console.log('开始调用extractGoodsInfo...');
       const extractResult = await extractGoodsInfo(link);
+      console.log('extractGoodsInfo返回结果:', extractResult);
+
       if (extractResult.success && extractResult.data) {
+        console.log('准备填充表单:', extractResult.data);
+
         form.setFieldsValue({
           name: extractResult.data.name,
           brand: extractResult.data.brand,
@@ -35,10 +40,14 @@ export function GoodsForm({ onSubmit, initialValues }: GoodsFormProps) {
           image: extractResult.data.image
         });
 
+        console.log('表单填充后的值:', form.getFieldsValue());
+
         const classifyResult = await classifyGoods(
           extractResult.data.name,
           extractResult.data.brand
         );
+
+        console.log('classifyGoods返回结果:', classifyResult);
 
         if (classifyResult.success && classifyResult.category) {
           setAiSuggestedCategory(classifyResult.category);
@@ -49,6 +58,7 @@ export function GoodsForm({ onSubmit, initialValues }: GoodsFormProps) {
         message.error(extractResult.error || '提取失败，请手动输入');
       }
     } catch (error: any) {
+      console.error('handleLinkExtract错误:', error);
       message.error(error.message);
     }
     setAiLoading(false);
