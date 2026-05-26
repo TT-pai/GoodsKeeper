@@ -12,7 +12,7 @@ export interface AiExtractResult {
     platform?: string;
   };
   error?: string;
-  method: 'link' | 'image' | 'manual'; // 提取方式
+  method: 'link' | 'image' | 'manual' | 'crawler'; // 提取方式（新增爬虫方式）
 }
 
 export interface AiClassifyResult {
