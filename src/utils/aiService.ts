@@ -74,38 +74,50 @@ export class AiService {
 
   async extractGoodsInfo(link: string): Promise<AiExtractResult> {
     try {
-      const prompt = `Extract product information from this e-commerce link: ${link}
+      console.log('开始调用商品信息爬虫...');
 
-Return ONLY pure JSON without any markdown markers. Use this exact format:
-{"name":"Product Name","brand":"Brand Name","price":99.9,"image":"Image URL","platform":"taobao"}
+      // 调用自建爬虫API
+      const apiUrl = `/api/crawl?url=${encodeURIComponent(link)}`;
+      console.log('爬虫API地址:', apiUrl);
 
-Requirements:
-1. name field is required
-2. price must be number type (no quotes)
-3. brand and image should be empty string "" if not available
-4. platform options: taobao/jd/pdd/other
-5. If extraction fails, return: {"success":false,"error":"reason"}`;
+      const response = await fetch(apiUrl);
+      console.log('爬虫API响应状态:', response.status);
 
-      const response = await this.callDeepSeek(prompt);
-      console.log('DeepSeek raw response:', response);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '爬虫请求失败');
+      }
 
-      const cleanedResponse = this.cleanJsonResponse(response);
-      console.log('Cleaned JSON:', cleanedResponse);
+      const result = await response.json();
+      console.log('爬虫返回结果:', result);
 
-      const parsed = JSON.parse(cleanedResponse);
-      console.log('Parsed data:', parsed);
+      // 检查是否成功
+      if (!result.success || !result.data) {
+        return {
+          success: false,
+          error: result.error || '爬取失败',
+          method: 'crawler'
+        };
+      }
 
+      // 返回爬取的商品信息
       return {
         success: true,
-        data: parsed,
-        method: 'link'
+        data: {
+          name: result.data.name || '',
+          brand: result.data.brand || '',
+          price: result.data.price || 0,
+          image: result.data.image || '',
+          platform: result.data.platform || 'other'
+        },
+        method: 'crawler'
       };
     } catch (error: any) {
-      console.error('AI extraction error:', error);
+      console.error('商品信息爬取错误:', error);
       return {
         success: false,
-        error: error.message,
-        method: 'link'
+        error: error.message || '爬虫服务不可用',
+        method: 'crawler'
       };
     }
   }

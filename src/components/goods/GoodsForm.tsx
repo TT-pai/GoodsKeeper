@@ -86,7 +86,7 @@ export function GoodsForm({ onSubmit, initialValues }: GoodsFormProps) {
     >
       <Form.Item label="商品链接" name="link">
         <Input
-          placeholder="粘贴淘宝/京东/拼多多链接"
+          placeholder="粘贴淘宝/京东/拼多多链接，爬虫将提取真实商品信息"
           prefix={<LinkOutlined />}
           addonAfter={
             <Button
@@ -95,7 +95,7 @@ export function GoodsForm({ onSubmit, initialValues }: GoodsFormProps) {
               loading={aiLoading}
               onClick={handleLinkExtract}
             >
-              AI提取
+              爬虫提取
             </Button>
           }
         />
